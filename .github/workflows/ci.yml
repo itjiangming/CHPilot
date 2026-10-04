@@ -1,0 +1,37 @@
+name: CI
+
+# 推送到主分支或提交 PR 时执行：静态检查 + 单元测试 + 一次可构建性验证
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+          cache: true
+
+      - name: 代码格式检查
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "以下文件未格式化，请执行 gofmt -w . ："
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: 静态检查与单元测试
+        run: |
+          go vet ./...
+          go test -race ./...
+
+      - name: 构建验证（本机平台）
+        run: go build ./...

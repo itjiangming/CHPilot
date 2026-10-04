@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="CHPilot">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  <!-- 圆角方形渐变底 -->
+  <rect x="0" y="0" width="256" height="256" rx="59" ry="59" fill="url(#bg)"/>
+  <!-- 拨动开关（白色胶囊） -->
+  <rect x="44.8" y="97.8" width="166.4" height="60.4" rx="30.2" ry="30.2" fill="#FFFFFF"/>
+  <!-- 胶囊内左侧引脚暗示 -->
+  <rect x="70.2" y="116.5" width="20.5" height="6" rx="3" ry="3" fill="#93C5FD"/>
+  <rect x="70.2" y="133.5" width="20.5" height="6" rx="3" ry="3" fill="#93C5FD"/>
+  <!-- 蓝色圆钮（导通位） -->
+  <circle cx="181" cy="128" r="22.3" fill="#2563EB"/>
+</svg>

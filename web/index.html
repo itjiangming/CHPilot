@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHPilot - CH340 串口设备控制</title>
+<link rel="stylesheet" href="style.css?v=__ASSET_V__">
+<link rel="icon" href="favicon.ico?v=__ASSET_V__" sizes="any">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=__ASSET_V__">
+<link rel="apple-touch-icon" href="icon-192.png?v=__ASSET_V__">
+<meta name="theme-color" content="#2563eb">
+</head>
+<body>
+<header class="topbar">
+  <h1>CHPilot <span class="sub">CH340 串口设备控制</span></h1>
+  <div class="top-right">
+    <span id="portLamp" class="lamp off" title="串口状态"></span>
+    <span id="portLabel">串口未连接</span>
+    <span id="clientIdLabel" class="client-id" title="本 GUI 实例标识（多实例操作提示中标注操作者）"></span>
+    <button id="btnResetLocal" class="ghost" title="清除本机保存的设置并恢复到初始状态">一键重置</button>
+    <button id="btnHelp" class="ghost">帮助</button>
+    <button id="btnAbout" class="ghost">关于</button>
+  </div>
+</header>
+
+<main>
+  <!-- ① 连接设置 -->
+  <section class="card" id="cardConn">
+    <h2>① 连接设置</h2>
+    <div class="grid">
+      <label>串口设备
+        <div class="row">
+          <select id="selPort"><option value="">（点击刷新枚举）</option></select>
+          <button id="btnRefresh" class="ghost" title="重新枚举串口">刷新</button>
+        </div>
+      </label>
+      <label>波特率
+        <select id="baudRate">
+          <option>9600</option><option>1200</option><option>2400</option><option>4800</option>
+          <option>19200</option><option>38400</option><option>57600</option><option>115200</option>
+        </select>
+      </label>
+      <label>数据位
+        <select id="dataBits"><option>8</option><option>7</option><option>6</option><option>5</option></select>
+      </label>
+      <label>停止位
+        <select id="stopBits"><option value="1">1</option><option value="15">1.5</option><option value="2">2</option></select>
+      </label>
+      <label>校验位
+        <select id="parity">
+          <option value="none">无校验</option><option value="even">偶校验</option><option value="odd">奇校验</option>
+        </select>
+      </label>
+      <label>流控制
+        <select id="flowControl">
+          <option value="none">None</option>
+        </select>
+      </label>
+    </div>
+    <div class="row">
+      <button id="btnOpen" class="primary">打开串口</button>
+      <span id="openErr" class="err hidden"></span>
+    </div>
+  </section>
+
+  <!-- ② 控制面板 -->
+  <section class="card" id="cardPanel">
+    <h2>② 控制面板</h2>
+    <div class="row panel-head">
+      <label>模块路数
+        <select id="channelCount">
+          <option value="1" selected>1 路</option><option value="2">2 路</option>
+          <option value="4">4 路</option><option value="8">8 路</option>
+        </select>
+      </label>
+      <button id="btnAllOn">全部开启</button>
+      <button id="btnAllOff">全部关闭</button>
+      <button id="btnQuery" class="ghost">刷新状态</button>
+    </div>
+    <div id="channelGrid" class="channel-grid"></div>
+    <div class="row">
+      <button id="btnMonitor" class="ghost">数据监视窗口 ▸</button>
+    </div>
+  </section>
+
+  <!-- ③ 数据监视窗口（默认折叠） -->
+  <section class="card hidden" id="cardMonitor">
+    <h2>③ 数据监视窗口</h2>
+    <div class="row">
+      <label>显示模式
+        <select id="monMode"><option value="hex">HEX</option><option value="text">文本</option></select>
+      </label>
+      <button id="btnClearMon" class="ghost">清屏</button>
+      <span class="muted" id="monCount"></span>
+    </div>
+    <div id="monLog" class="mon-log"></div>
+    <div class="row">
+      <input id="monInput" type="text" placeholder="自定义 HEX 指令，如 A0 01 03 A4（支持 a00103a4 / A0,01,03）" spellcheck="false">
+      <button id="btnSend">发送</button>
+      <span id="sendErr" class="err hidden"></span>
+    </div>
+  </section>
+
+  <!-- ④ 自定义指令序列 -->
+  <section class="card" id="cardSeq">
+    <h2>④ 自定义指令序列</h2>
+    <div class="row">
+      <button id="btnAddCmd" class="ghost">＋ 添加指令</button>
+      <label class="inline">循环：
+        <input type="radio" name="loopMode" value="fixed" checked>固定次数
+        <input id="loopCount" type="number" min="1" max="9999" value="1" class="num">
+        <input type="radio" name="loopMode" value="inf">无限循环
+      </label>
+      <button id="btnSeqStart" class="primary">▶ 开始发送</button>
+      <button id="btnSeqStop" class="danger hidden">■ 停止</button>
+      <span id="seqProgress" class="muted"></span>
+    </div>
+    <div id="cmdList" class="cmd-list"></div>
+  </section>
+</main>
+
+<!-- 使用说明弹窗 -->
+<dialog id="dlgHelp">
+  <h2>使用说明</h2>
+  <div class="help-body">
+    <h3>快速上手</h3>
+    <p class="muted">顶栏「一键重置」：清除本机保存的设置（串口参数、路数、接线视角、自定义指令、界面偏好、实例标识）并恢复初始状态；不影响串口开关状态与其他客户端。</p>
+    <ol>
+      <li>插入 CH340 串口设备（设备列表约 2 秒内自动刷新，也可点"刷新"）；</li>
+      <li>选择串口（CH340 设备有标注），参数保持默认 9600-8-无校验；</li>
+      <li>点"打开串口"，状态灯变绿后在控制面板操作；</li>
+      <li>用完点"关闭串口"释放设备。</li>
+    </ol>
+
+    <h3>控制面板</h3>
+    <ul>
+      <li><b>模块路数</b>：按开关模块实际路数选 1/2/4/8，打开串口后自动逐路查询状态；</li>
+      <li><b>switch 主控开关</b>：每通道的主要控制方式，点击切换逻辑开/关，状态以硬件反馈为准；</li>
+      <li><b>箭头图标 ▸ / ▾</b>（通道卡片右上角）：展开/收起该通道的 开、关、切换 按钮（默认收起，每通道独立）；</li>
+      <li><b>接线（每路独立）</b>：NO=常开（逻辑开=吸合）；NC=常闭（逻辑语义反转：界面"开"=物理断开，默认）。按实际接线选择，修改后自动重新查询；</li>
+      <li><b>全部开启/关闭</b>：按通道顺序逐路执行；"刷新状态"重新查询所有通道。</li>
+    </ul>
+
+    <h3>数据监视窗口</h3>
+    <ul>
+      <li>默认折叠，点"数据监视窗口"展开；每行：时间戳 + 方向（TX▲发送 / RX▼接收）+ 数据；</li>
+      <li>显示模式可切 HEX / 文本；最多保留 1000 条；</li>
+      <li>发送框支持宽松 HEX 格式：<code>A0 01 03 A4</code>、<code>a00103a4</code>、<code>A0,01,03</code> 均可，回车即发送。</li>
+    </ul>
+
+    <h3>自定义指令序列</h3>
+    <ul>
+      <li>"＋ 添加指令"添加多条 HEX 指令，每条可设发送后延迟（毫秒，最小 50ms 生效）；</li>
+      <li>↑ ↓ 调整顺序，按序号顺序发送；循环模式：固定次数或无限循环；</li>
+      <li>执行中可点"停止"，当前指令执行完即停。</li>
+    </ul>
+
+    <h3>多客户端</h3>
+    <p>多个浏览器同时打开时，串口状态、通道开关状态、数据流实时同步；重复打开同一串口不会报错。</p>
+
+    <h3>指令协议定义</h3>
+    <p>串口参数默认 <b>9600-8-N-1</b>。指令帧为定长 4 字节：</p>
+    <p><code>A0</code>（起始标志） + <code>通道号</code>（01~FE，即第 1~254 路） +
+       <code>操作码</code> + <code>校验和</code>（前三字节之和取低 8 位）</p>
+    <ul>
+      <li><b>操作码</b>：<code>0x00</code> 关（无反馈）、<code>0x01</code> 开（无反馈）、
+          <code>0x02</code> 关（带反馈）、<code>0x03</code> 开（带反馈）、
+          <code>0x04</code> 取反（带反馈）、<code>0x05</code> 查询状态（带反馈）</li>
+      <li><b>反馈帧</b>结构与下发帧相同，仅操作码位表示物理状态：
+          <code>0x00</code> 物理关（线圈释放）、<code>0x01</code> 物理开（线圈吸合）</li>
+      <li><b>面板控制</b>默认使用带反馈指令确认状态（开 <code>0x03</code> / 关 <code>0x02</code>），
+          "切换"使用 <code>0x04</code>，"刷新状态"与打开串口后的初始化查询使用 <code>0x05</code>；
+          反馈读取超时 200ms，超时则该路显示"状态未知"</li>
+      <li><b>示例</b>（第 1 路）：查询 <code>A0 01 05 A6</code> →
+          反馈 <code>A0 01 00 A1</code>（物理关）/ <code>A0 01 01 A2</code>（物理开）；
+          吸合 <code>A0 01 03 A4</code>；断开 <code>A0 01 02 A3</code>；取反 <code>A0 01 04 A5</code></li>
+      <li><b>任意通道推算</b>：第 N 路 = <code>A0 N 操作码</code> + 校验和，
+          如第 4 路查询 <code>A0 04 05 A9</code>、第 8 路吸合 <code>A0 08 03 AB</code></li>
+      <li>监视窗口的<b>手动发送</b>与<b>自定义指令序列</b>按原始字节下发，不受面板逻辑限制；
+          若字节构成合法协议帧（<code>A0</code> 起始且校验通过），会自动同步对应通道状态</li>
+    </ul>
+
+    <h3>常见问题</h3>
+    <ul>
+      <li><b>没有设备</b>：检查 USB 与驱动（见"关于"中的驱动链接）；插入后列表自动刷新；</li>
+      <li><b>无访问权限</b>（Linux）：<code>sudo usermod -aG dialout $USER</code> 后重新登录；</li>
+      <li><b>被占用</b>：关闭其他串口调试工具后重试；</li>
+      <li><b>状态未知（?）</b>：200ms 内无硬件反馈，检查波特率是否 9600、模块供电与接线；</li>
+      <li><b>开关行为反了</b>：该通道接线方式 NO/NC 选反了。</li>
+    </ul>
+  </div>
+  <form method="dialog"><button class="primary">关闭</button></form>
+</dialog>
+
+<!-- 关于弹窗 -->
+<dialog id="dlgAbout">
+  <h2 class="about-title">
+    <img src="icon-64.png?v=__ASSET_V__" alt="CHPilot" class="about-logo">
+    CHPilot <span class="muted" id="aboutVersion">v-</span>
+  </h2>
+  <p>基于 CH340 USB 串口协议指令的设备控制服务。单二进制 Go 服务 + 内嵌 Web 页面，跨平台（Windows / Linux / macOS）。</p>
+  <p><b>主要功能</b>：串口设备枚举与热插拔监听、串口参数配置（波特率/数据位/停止位/校验位）、
+     1/2/4/8 路开关独立控制（每通道独立 NO/NC 接线映射、switch 主控开关、全开全关）、
+     收发数据实时监视（HEX/文本、时间戳、方向标记）、自定义指令序列循环发送、多客户端状态同步。</p>
+  <p><b>开发者</b>：JiangMing / 江明　<a href="mailto:itjiangming@163.com">itjiangming@163.com</a></p>
+  <p><b>开源地址</b>：<a href="https://github.com/itjiangming/CHPilot" target="_blank" rel="noopener">https://github.com/itjiangming/CHPilot</a></p>
+  <p><b>开源许可</b>：本项目以 MIT License 开源，可自由使用与分发；请保留版权声明与许可声明（注明来源）。<br>
+     Copyright © 2026 JiangMing（江明）</p>
+  <p><b>CH340 驱动</b>：若枚举不到设备或打开异常，请安装官方驱动：<br>
+     <a href="https://www.wch.cn/downloads/CH341SER_EXE.html" target="_blank" rel="noopener">https://www.wch.cn/downloads/CH341SER_EXE.html</a></p>
+  <form method="dialog"><button class="primary">关闭</button></form>
+</dialog>
+
+<!-- 操作提示容器：置于 body 直接子元素，避免在 flex 容器内被 Firefox 解析为不同定位参考系 -->
+<div id="toastBox" class="toast-box"></div>
+
+<script src="app.js?v=__ASSET_V__"></script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+:root {
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --line: #dde3ea;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --primary: #2563eb;
+  --primary-h: #1d4ed8;
+  --danger: #dc2626;
+  --ok: #16a34a;
+  --tx: #2563eb;
+  --rx: #16a34a;
+  --radius: 10px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 14px/1.6 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+.hidden { display: none !important; }
+.muted { color: var(--muted); font-size: 12px; }
+.err { color: var(--danger); font-size: 13px; margin-left: 8px; }
+
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 20px; background: #1e293b; color: #fff;
+}
+.topbar h1 { font-size: 18px; margin: 0; }
+.topbar .sub { font-size: 12px; font-weight: normal; color: #94a3b8; margin-left: 8px; }
+.top-right { display: flex; align-items: center; gap: 8px; }
+.top-right button { color: #e2e8f0; }
+.top-right button:hover { background: #334155; }
+
+.lamp { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.lamp.on  { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+.lamp.off { background: #64748b; }
+
+main { max-width: 980px; margin: 16px auto; padding: 0 12px; display: flex; flex-direction: column; gap: 14px; }
+
+.card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 14px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+.card h2 { font-size: 15px; margin: 0 0 10px; color: #334155; }
+.card.disabled { opacity: .55; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px 14px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+label.inline { flex-direction: row; align-items: center; gap: 6px; color: var(--text); }
+
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+select, input[type=text], input[type=number] {
+  padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
+  font-size: 13px; background: #fff; color: var(--text);
+}
+input[type=number].num { width: 70px; }
+#monInput { flex: 1; min-width: 220px; font-family: Consolas, monospace; }
+#monInput.bad { border-color: var(--danger); background: #fef2f2; }
+
+button {
+  padding: 7px 16px; border: 1px solid var(--line); border-radius: 6px;
+  background: #fff; color: var(--text); font-size: 13px; cursor: pointer;
+}
+button:hover { border-color: var(--primary); color: var(--primary); }
+button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+button.primary:hover { background: var(--primary-h); color: #fff; }
+button.ghost { background: transparent; }
+button.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+
+.panel-head { align-items: end; }
+.panel-head label { margin-bottom: 0; }
+
+.channel-grid {
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  align-items: start; /* 卡片按自身内容高度排列，展开某张不会拉高其余卡片 */
+  margin-top: 12px;
+}
+.ch-card {
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+  display: flex; flex-direction: column;
+  background: #fafbfc;
+}
+.ch-card.on  { border-color: var(--ok); background: #f0fdf4; }
+.ch-card .lamp { width: 14px; height: 14px; }
+
+/* 卡片标题行：状态灯 + 通道名 + 展开箭头 */
+.ch-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.ch-head .ch-name { font-weight: 600; flex: 1; }
+
+/* 信息行：标签 | 控件 两列对齐，各通道卡片纵向整齐 */
+.ch-row {
+  display: grid; grid-template-columns: 32px 1fr;
+  align-items: center; column-gap: 8px; min-height: 30px;
+}
+.ch-label { font-size: 11px; color: var(--muted); text-align: right; }
+.ch-card .ch-state { font-size: 12px; }
+.wiring-sel { width: 100%; max-width: 118px; padding: 3px 6px; font-size: 12px; }
+.ch-row .switch { justify-self: start; }
+
+/* 高级按钮区（可展开）：与上方以虚线分隔，提示与按钮左对齐 */
+.ch-adv {
+  display: flex; flex-direction: column; gap: 5px;
+  margin-top: 7px; padding-top: 7px; border-top: 1px dashed var(--line);
+}
+.ch-adv.hidden { display: none; }
+.ch-adv-hint { font-size: 11px; color: var(--muted); }
+.ch-card .ch-btns { display: flex; gap: 6px; }
+.ch-card button { padding: 4px 10px; }
+
+/* 通道卡片头部：状态灯 + 通道名 + 菜单图标 */
+.ch-head { display: flex; align-items: center; gap: 8px; width: 100%; }
+.ch-head .ch-name { font-weight: 600; flex: 1; text-align: left; }
+.ch-menu {
+  padding: 0 6px; line-height: 22px; font-size: 14px;
+  border: none; background: transparent; color: var(--muted); cursor: pointer;
+  transition: transform .2s;
+}
+.ch-menu:hover { color: var(--primary); }
+/* 展开时箭头由 ▸ 旋转为 ▾ */
+.ch-menu.active { color: var(--primary); transform: rotate(90deg); }
+.wiring-row {
+  flex-direction: row; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--muted);
+}
+.wiring-row select { padding: 2px 4px; font-size: 12px; }
+
+/* switch 主控开关 */
+.switch { position: relative; display: inline-block; width: 52px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .slider {
+  position: absolute; cursor: pointer; inset: 0;
+  background: #cbd5e1; border-radius: 28px; transition: .2s;
+}
+.switch .slider::before {
+  content: ""; position: absolute; height: 22px; width: 22px;
+  left: 3px; top: 3px; background: #fff; border-radius: 50%;
+  transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+.switch input:checked + .slider { background: var(--ok); }
+.switch input:checked + .slider::before { transform: translateX(24px); }
+.switch input:disabled + .slider { opacity: .5; cursor: not-allowed; }
+.card.disabled .switch .slider { cursor: not-allowed; }
+
+
+.mon-log {
+  height: 240px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px;
+  background: #0f172a; color: #e2e8f0; padding: 8px 10px;
+  font-family: Consolas, Menlo, monospace; font-size: 12px;
+  margin: 10px 0;
+}
+.mon-line { white-space: pre-wrap; word-break: break-all; }
+.mon-line .ts { color: #64748b; margin-right: 8px; }
+.mon-line .dir-tx { color: var(--tx); font-weight: 600; margin-right: 8px; }
+.mon-line .dir-rx { color: var(--rx); font-weight: 600; margin-right: 8px; }
+.mon-line.tx .hex { color: #93c5fd; }
+.mon-line.rx .hex { color: #86efac; }
+
+.cmd-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.cmd-row { display: flex; gap: 6px; align-items: center; }
+.cmd-row .idx { width: 26px; text-align: center; color: var(--muted); }
+.cmd-row input.hex-in { flex: 1; font-family: Consolas, monospace; }
+.cmd-row input.delay-in { width: 80px; }
+.cmd-row button { padding: 4px 8px; }
+.cmd-row button.del:hover { border-color: var(--danger); color: var(--danger); }
+
+dialog {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px 24px; max-width: 560px; line-height: 1.7;
+}
+/* 兜底：不支持 <dialog> 元素的旧浏览器没有内置隐藏规则，
+   会把弹窗内容排进页面文档流（显示在主页面底部），这里显式隐藏 */
+dialog:not([open]) { display: none; }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+dialog code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; }
+dialog a { color: var(--primary); }
+dialog h2 { margin-top: 0; }
+
+/* 使用说明弹窗 */
+dialog#dlgHelp[open] { max-height: 85vh; display: flex; flex-direction: column; }
+dialog#dlgHelp h2 { flex: 0 0 auto; }
+dialog .help-body { flex: 1 1 auto; overflow-y: auto; padding-right: 6px; min-height: 0; }
+dialog#dlgHelp form { flex: 0 0 auto; margin: 10px 0 0; }
+dialog .help-body h3 {
+  font-size: 14px; color: var(--primary); margin: 14px 0 4px;
+  border-bottom: 1px solid var(--line); padding-bottom: 3px;
+}
+dialog .help-body ul, dialog .help-body ol { margin: 4px 0; padding-left: 20px; }
+dialog .help-body li { margin: 3px 0; }
+dialog .help-body p { margin: 6px 0; }
+
+/* 状态未知时 switch 中间态：灰蓝滑块，区别于已确认的关（灰）与开（绿） */
+.switch input:indeterminate + .slider { background: #7c93ad; }
+
+/* 本机实例标识 */
+.client-id { font-size: 12px; color: #94a3b8; border: 1px solid #475569; border-radius: 10px; padding: 1px 8px; }
+
+/* 操作提示 toast：固定在浏览器视口底部居中，不随内容滚动。
+   使用 left/right:0 + 弹性居中（不用 transform 居中），并置于 body 直接子元素，
+   保证 Firefox/Chromium 定位参考系一致 */
+.toast-box {
+  position: fixed; left: 0; right: 0; bottom: 20px;
+  display: flex; flex-direction: column-reverse; align-items: center; gap: 6px;
+  z-index: 1000; pointer-events: none;
+}
+.toast {
+  background: #1e293b; color: #f1f5f9; font-size: 13px;
+  padding: 7px 16px; border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  opacity: 0; transform: translateY(8px); transition: all .3s;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { background: var(--danger); }
+
+/* 弹窗底部按钮行：居中显示 */
+dialog form { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+
+/* 关于弹窗标题：图标 + 名称 */
+.about-title { display: flex; align-items: center; gap: 10px; }
+.about-logo { width: 40px; height: 40px; border-radius: 9px; }
